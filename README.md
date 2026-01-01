@@ -8,22 +8,22 @@ RAG AI Semantic Search is a backend-focused project designed to explore modern A
 
 Instead of relying on keyword matching, the system understands the meaning behind a user's query and retrieves the most relevant content along with its original source and exact location.
 
-The frontend is intentionally minimal and serves only as a demonstration interface. The primary focus of this project is building scalable backend services, data pipelines, search infrastructure, and production-ready architecture.
+The frontend is intentionally minimal and serves only as a demonstration interface. The primary focus of this project is building scalable backend services, AI retrieval pipelines, vector search infrastructure, and production-ready architecture.
 
 ---
 
 ## Features
 
-- Semantic search powered by vector embeddings
+- AI-powered semantic search
 - Video transcript indexing
 - Blog and document indexing
 - Exact timestamp navigation for videos
 - Source-aware search results
-- Background processing using queues
-- Hybrid metadata + vector search
+- Vector similarity search
+- Hybrid metadata + semantic search
 - REST APIs
-- Production-ready architecture
-- Modular backend design
+- Modular backend architecture
+- Production-ready development practices
 
 ---
 
@@ -36,65 +36,63 @@ The frontend is intentionally minimal and serves only as a demonstration interfa
 - TypeScript
 - Tailwind CSS
 
-> The frontend exists only for interacting with the search APIs and visualizing search results.
+> The frontend is intentionally lightweight and primarily serves as a user interface for interacting with the backend APIs.
 
 ---
 
 ### Backend
 
+- Next.js Route Handlers
 - Node.js
 - TypeScript
-- Next.js API Routes / Route Handlers
+- Drizzle ORM
+- Zod
 - REST APIs
-- RabbitMQ
-- Background Workers
-- Cron Jobs
-- Zod Validation
 
 ---
 
-### Databases
+### Database
 
 #### Neon PostgreSQL
 
-Used for relational application data.
+Used as the primary relational database.
 
-Examples:
+Stores:
 
 - Users
 - Videos
 - Blog Articles
 - Metadata
-- Search History
-- Projects
 - Sources
+- Search History
+
+Managed using **Drizzle ORM** for type-safe schema definitions, migrations, and queries.
 
 ---
 
 #### TimescaleDB + pgvector
 
-Used for AI retrieval and semantic search.
+Used for semantic search and vector retrieval.
 
 Stores:
 
 - Embeddings
-- Content chunks
-- Metadata
-- Similarity indexes
-- Vector search indexes
+- Content Chunks
+- Vector Metadata
+- Similarity Indexes
 
 Provides:
 
-- Semantic retrieval
-- Cosine similarity search
-- Hybrid search
-- Timestamp retrieval
+- Vector Similarity Search
+- Cosine Distance Search
+- Semantic Retrieval
+- Timestamp-Based Retrieval
 
 ---
 
 ## AI Pipeline
 
-```
+```text
 Video / Blog / PDF
         │
         ▼
@@ -113,7 +111,7 @@ Vector Storage (TimescaleDB)
 Semantic Search
         │
         ▼
-LLM Context Generation
+Context Retrieval
         │
         ▼
 Response with Source + Timestamp
@@ -123,61 +121,39 @@ Response with Source + Timestamp
 
 ## Architecture
 
-```
-Client
-
-      │
-
-      ▼
-
-Next.js API
-
-      │
-
-      ├───────────────► Neon PostgreSQL
-
-      │
-
-      ├───────────────► RabbitMQ
-
-      │                     │
-
-      │                     ▼
-
-      │              Background Workers
-
-      │                     │
-
-      ▼                     ▼
-
-TimescaleDB (pgvector)
-
-      │
-
-      ▼
-
-Semantic Retrieval Engine
-
-      │
-
-      ▼
-
-Response Builder
+```text
+                Client
+                   │
+                   ▼
+             Next.js Application
+                   │
+        ┌──────────┴──────────┐
+        ▼                     ▼
+Neon PostgreSQL         TimescaleDB + pgvector
+     (Drizzle ORM)         (Vector Search)
+        │                     │
+        └──────────┬──────────┘
+                   ▼
+          Semantic Retrieval Engine
+                   │
+                   ▼
+          Source + Timestamp Response
 ```
 
 ---
 
 ## Code Quality
 
-Maintaining high code quality is a core principle of this project. Every change is validated through automated tooling and AI-assisted code reviews before being merged.
+Maintaining high code quality is a core principle of this project. Every change is validated through automated tooling and AI-assisted code reviews.
 
 ### Tooling
 
 - **TypeScript** — Strict type safety
+- **Drizzle ORM** — Type-safe database access
 - **ESLint** — Static code analysis
 - **Prettier** — Consistent code formatting
-- **Husky** — Git hooks for pre-commit checks
-- **lint-staged** — Lint only staged files
+- **Husky** — Git hooks
+- **lint-staged** — Lint staged files
 - **CodeRabbit** — AI-powered pull request reviews
 - **GitHub Actions** — Continuous Integration (CI)
 
@@ -185,18 +161,19 @@ Maintaining high code quality is a core principle of this project. Every change 
 
 ## Project Goals
 
-The objective of this repository is to understand and implement the complete lifecycle of a modern Retrieval-Augmented Generation (RAG) system.
+The objective of this repository is to understand and implement the complete lifecycle of a production-grade Retrieval-Augmented Generation (RAG) system.
 
 Topics explored include:
 
 - Semantic Search
 - Embeddings
 - Vector Databases
+- pgvector
+- TimescaleDB
+- Neon PostgreSQL
+- Drizzle ORM
 - Retrieval Pipelines
 - Chunking Strategies
-- Background Processing
-- Event-Driven Architecture
-- Queue Systems
 - Search Ranking
 - Hybrid Search
 - Production Backend Design
@@ -207,36 +184,33 @@ Topics explored include:
 ## Future Roadmap
 
 - Multi-model embedding support
+- Hybrid keyword + vector search
 - Re-ranking models
-- Hybrid search
 - Streaming responses
 - OCR support
 - PDF ingestion
 - Audio indexing
 - YouTube integration
-- Notion integration
-- GitHub repository indexing
 - Documentation indexing
 - Personal knowledge base
+- Multi-source ingestion
 - Multi-tenant architecture
 
 ---
 
 ## Repository Structure
 
-```
+```text
 app/
 components/
 lib/
-server/
-workers/
-queues/
+db/
+drizzle/
 services/
 repositories/
 embeddings/
 retrieval/
 vector/
-database/
 types/
 utils/
 ```
@@ -247,6 +221,6 @@ utils/
 
 This project is not intended to be another chatbot.
 
-Its goal is to build a production-grade AI retrieval engine capable of indexing large volumes of knowledge and returning highly relevant answers with complete source attribution and precise timestamp navigation.
+Its goal is to build a production-grade AI retrieval engine capable of indexing videos, blogs, and documents, enabling natural language search with accurate source attribution and precise timestamp navigation.
 
-The emphasis is on scalable backend architecture, maintainable code, and real-world engineering practices rather than frontend complexity.
+The emphasis is on backend engineering, scalable architecture, modern AI retrieval techniques, and maintainable code rather than frontend complexity.
