@@ -10,6 +10,7 @@ export const auth = betterAuth({
     provider: 'pg',
     schema
   }),
+  secret: serverEnv.BETTER_AUTH_SECRET,
   advanced: {
     database: {
       generateId: 'uuid'
