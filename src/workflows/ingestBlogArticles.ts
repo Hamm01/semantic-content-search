@@ -9,6 +9,12 @@ import { FatalError } from 'workflow'
 import { chunkArticles } from '@/lib/chunking/chunkArticles'
 
 const RSS_URL = 'https://www.tothenew.com/blog/feed/'
+const feedItemSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  link: z.url(),
+  pubDate: z.coerce.date()
+})
 
 export async function ingestBlogArticlesWorkflow() {
   'use workflow'
