@@ -26,5 +26,17 @@ export async function ingestBlogArticlesWorkflow() {
 function ingestArticleStep(batch: unknown): Promise<void> {
   throw new Error('Function not implemented.')
 }
+async function getNewArticlesFromRssFeed() {
+  'use step'
 
-function getNewArticlesFromRssFeed() {}
+  const parser = new Parser({ customFields: { item: ['description'] } })
+  const { items } = await parser.parseURL(RSS_URL)
+  const existingUrls = await db.query.content
+    .findMany({
+      where: { type: 'article' },
+      columns: { url: true }
+    })
+    .then(data => data.map(r => r.url))
+
+  return items.filter(item => item.link && !existingUrls.includes(item.link))
+}
