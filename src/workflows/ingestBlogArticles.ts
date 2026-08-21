@@ -23,9 +23,6 @@ export async function ingestBlogArticlesWorkflow() {
   return await batchExec(newArticles, ingestArticleStep)
 }
 
-function ingestArticleStep(batch: unknown): Promise<void> {
-  throw new Error('Function not implemented.')
-}
 async function getNewArticlesFromRssFeed() {
   'use step'
 
@@ -39,4 +36,65 @@ async function getNewArticlesFromRssFeed() {
     .then(data => data.map(r => r.url))
 
   return items.filter(item => item.link && !existingUrls.includes(item.link))
+}
+
+async function ingestArticleStep(feedItem: Parser.Item) {
+  'use step'
+
+  const { error, data: item } = feedItemSchema.safeParse(feedItem)
+  if (error) {
+    throw new FatalError(
+      `Failed to process RSS feed item ${feedItem.link} -  ${error.message}`
+    )
+  }
+
+  const response = await fetch(item.link)
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ${item.link}: ${response.status}`)
+  }
+  const html = await response.text()
+
+  const $ = cheerio.load(html)
+
+  const mainHtml = $('article main').html()
+  const thumbnailUrl =
+    $('meta[property="og:image"]').attr('content') ??
+    $('meta[name="twitter:image"]').attr('content')
+
+  if (mainHtml == null || thumbnailUrl == null) {
+    throw new FatalError(`Failed to load HTML ${item.link}`)
+  }
+
+  const chunkTexts = chunkArticles(mainHtml)
+
+  const [contentRow] = await db
+    .insert(content)
+    .values({
+      type: 'article',
+      title: item.title,
+      description: item.description,
+      publishDate: item.pubDate,
+      url: item.link,
+      thumbnailUrl,
+      content: mainHtml
+    })
+    .onConflictDoNothing()
+    .returning({ id: content.id })
+
+  if (contentRow?.id == null) {
+    throw new FatalError(
+      `Duplicate detected and failed to insert - ${item.link}`
+    )
+  }
+
+  if (chunkTexts.length > 0) {
+    await db.insert(chunks).values(
+      chunkTexts.map(chunkText => ({
+        contentId: contentRow.id,
+        startPosition: null,
+        embedding: null,
+        text: chunkText
+      }))
+    )
+  }
 }
