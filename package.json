@@ -16,8 +16,10 @@
     "auth:generate-schema": "auth generate --output ./src/db/schemas/auth.ts --config ./src/lib/auth/config.ts --yes"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^4.0.47",
     "@neondatabase/serverless": "^1.1.0",
     "@t3-oss/env-nextjs": "^0.13.11",
+    "ai": "^7.0.79",
     "better-auth": "^1.7.0-rc.2",
     "cheerio": "^1.2.0",
     "dotenv": "^17.4.2",
