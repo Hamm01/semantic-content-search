@@ -7,6 +7,7 @@ import { batchExec } from './utils/batchExec'
 import z from 'zod'
 import { FatalError } from 'workflow'
 import { chunkArticles } from '@/lib/chunking/chunkArticles'
+import { embedChunks } from '@/lib/embedding/embed-chunks'
 
 const RSS_URL = 'https://www.tothenew.com/blog/feed/'
 const feedItemSchema = z.object({
@@ -20,6 +21,7 @@ export async function ingestBlogArticlesWorkflow() {
   'use workflow'
 
   const newArticles = await getNewArticlesFromRssFeed()
+
   return await batchExec(newArticles, ingestArticleStep)
 }
 
@@ -42,6 +44,7 @@ async function ingestArticleStep(feedItem: Parser.Item) {
   'use step'
 
   const { error, data: item } = feedItemSchema.safeParse(feedItem)
+
   if (error) {
     throw new FatalError(
       `Failed to process RSS feed item ${feedItem.link} -  ${error.message}`
@@ -56,7 +59,7 @@ async function ingestArticleStep(feedItem: Parser.Item) {
 
   const $ = cheerio.load(html)
 
-  const mainHtml = $('article main').html()
+  const mainHtml = $('.ttn-blog-single__content').html()
   const thumbnailUrl =
     $('meta[property="og:image"]').attr('content') ??
     $('meta[name="twitter:image"]').attr('content')
@@ -66,6 +69,7 @@ async function ingestArticleStep(feedItem: Parser.Item) {
   }
 
   const chunkTexts = chunkArticles(mainHtml)
+  const embeddings = await embedChunks(chunkTexts)
 
   const [contentRow] = await db
     .insert(content)
@@ -79,7 +83,7 @@ async function ingestArticleStep(feedItem: Parser.Item) {
       content: mainHtml
     })
     .onConflictDoNothing()
-    .returning({ id: content.id })
+    .returning({ id: content.id, url: content.url })
 
   if (contentRow?.id == null) {
     throw new FatalError(
@@ -89,10 +93,10 @@ async function ingestArticleStep(feedItem: Parser.Item) {
 
   if (chunkTexts.length > 0) {
     await db.insert(chunks).values(
-      chunkTexts.map(chunkText => ({
+      chunkTexts.map((chunkText, i) => ({
         contentId: contentRow.id,
         startPosition: null,
-        embedding: null,
+        embedding: embeddings[i],
         text: chunkText
       }))
     )
