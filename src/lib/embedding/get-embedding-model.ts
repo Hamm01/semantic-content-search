@@ -4,11 +4,10 @@ import { createOpenAI, openai } from '@ai-sdk/openai'
 const QWEN_MODEL = 'text-embedding-qwen3-embedding-0.6b'
 const OPENAI_MODEL = 'text-embedding-3-small'
 export function getEmbeddingModel() {
-  if (serverEnv.LOCAL_EMBEDDING_BASE_URL == null) {
-    throw Error('LOCAL_EMBEDDING_BASE_URL URL is not provided')
-  }
-
   if (serverEnv.EMBEDDING_PROVIDER === 'qwen') {
+    if (serverEnv.LOCAL_EMBEDDING_BASE_URL == null) {
+      throw Error('LOCAL_EMBEDDING_BASE_URL URL is not provided')
+    }
     const provider = createOpenAI({
       apiKey: 'not-needed',
       baseURL: serverEnv.LOCAL_EMBEDDING_BASE_URL
