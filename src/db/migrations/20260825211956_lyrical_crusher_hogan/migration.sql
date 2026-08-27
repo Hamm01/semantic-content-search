@@ -79,4 +79,7 @@ CREATE INDEX "content_url_idx" ON "content" ("url");--> statement-breakpoint
 CREATE INDEX "chunks_contentId_idx" ON "chunks" ("content_id");--> statement-breakpoint
 ALTER TABLE "account" ADD CONSTRAINT "account_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
 ALTER TABLE "session" ADD CONSTRAINT "session_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;--> statement-breakpoint
-ALTER TABLE "chunks" ADD CONSTRAINT "chunks_content_id_content_id_fkey" FOREIGN KEY ("content_id") REFERENCES "content"("id") ON DELETE CASCADE;
+ALTER TABLE "chunks" ADD CONSTRAINT "chunks_content_id_content_id_fkey" FOREIGN KEY ("content_id") REFERENCES "content"("id") ON DELETE CASCADE;--> statement-breakpoint
+DROP INDEX "content_url_idx";--> statement-breakpoint
+DROP INDEX "chunks_contentId_idx";--> statement-breakpoint
+ALTER TABLE "chunks" ALTER COLUMN "embedding" SET DATA TYPE vector(1536) USING "embedding"::vector(1536);
