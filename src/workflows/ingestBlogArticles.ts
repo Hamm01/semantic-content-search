@@ -9,7 +9,7 @@ import { FatalError } from 'workflow'
 import { chunkArticles } from '@/lib/chunking/chunkArticles'
 import { embedChunks } from '@/lib/embedding/embed-chunks'
 
-const RSS_URL = 'https://www.tothenew.com/blog/feed/'
+const RSS_URL = 'https://blog.webdevsimplified.com/rss.xml'
 const feedItemSchema = z.object({
   title: z.string(),
   description: z.string(),
@@ -59,7 +59,7 @@ async function ingestArticleStep(feedItem: Parser.Item) {
 
   const $ = cheerio.load(html)
 
-  const mainHtml = $('.ttn-blog-single__content').html()
+  const mainHtml = $('article main').html()
   const thumbnailUrl =
     $('meta[property="og:image"]').attr('content') ??
     $('meta[name="twitter:image"]').attr('content')
